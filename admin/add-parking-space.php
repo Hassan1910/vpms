@@ -3,8 +3,23 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['vpmsaid']==0)) {
-  header('location:logout.php');
+  header('loc                                    <div class="row form-group">
+                                        <div class="col col-md-3"><label for="text-input" class=" form-control-label">Parking number</label></div>
+                                        <div class="col-12 col-md-9">
+                                            <input type="text" id="vehcomp" name="parkingnumber" class="form-control" placeholder="parking number" value="<?php echo $next_number; ?>" required="true">
+                                            <small class="form-text text-muted">Suggested next number in sequence</small>
+                                        </div>
+                                    </div>n:logout.php');
   } else{
+
+// Get the next available parking number
+$next_number = 1;
+$result = mysqli_query($con, "SELECT MAX(CAST(parking_number AS UNSIGNED)) as max_number FROM parking_space WHERE parking_number REGEXP '^[0-9]+$'");
+if ($result && $row = mysqli_fetch_assoc($result)) {
+    if ($row['max_number'] !== null) {
+        $next_number = intval($row['max_number']) + 1;
+    }
+}
 
 if(isset($_POST['submit']))
   {
@@ -38,12 +53,13 @@ echo "<script>window.location.href ='manage-parking.php'</script>";
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.0/normalize.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pixeden-stroke-7-icon@1.2.3/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.2.0/css/flag-icon.min.css">
     <link rel="stylesheet" href="assets/css/cs-skin-elastic.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/sidebar-style.css">
 
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
 
@@ -129,11 +145,11 @@ echo "<script>window.location.href ='manage-parking.php'</script>";
                                     </div>
                                     <div class="row form-group">
                                         <div class="col col-md-3"><label for="text-input" class=" form-control-label">Parking number</label></div>
-                                        <div class="col-12 col-md-9"><input type="text" id="vehcomp" name="parkingnumber" class="form-control" placeholder="parking number" required="true"></div>
+                                        <div class="col-12 col-md-9"><input type="text" id="vehcomp" name="parkingnumber" class="form-control" placeholder="parking number" value="<?php echo $next_number; ?>" readonly required="true"></div>
                                     </div>
 
                                      <div class="row form-group">
-                                        <div class="col col-md-3"><label for="text-input" class=" form-control-label">price per hour(ksh)</label></div>
+                                        <div class="col col-md-3"><label for="text-input" class=" form-control-label">Price per hour (KES)</label></div>
                                         <div class="col-12 col-md-9"><input type="text" id="vehreno" name="price_per_hour" class="form-control" placeholder="hourly rate" required="true"></div>
                                     </div>
 

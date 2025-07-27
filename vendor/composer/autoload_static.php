@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInitac2d307f4ed514763a8119f3523066bb
 {
     public static $prefixLengthsPsr4 = array (
+        'Y' => 
+        array (
+            'Yabacon\\' => 8,
+        ),
         'S' => 
         array (
             'Svg\\' => 4,
@@ -27,6 +31,10 @@ class ComposerStaticInitac2d307f4ed514763a8119f3523066bb
     );
 
     public static $prefixDirsPsr4 = array (
+        'Yabacon\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yabacon/paystack-php/src',
+        ),
         'Svg\\' => 
         array (
             0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',

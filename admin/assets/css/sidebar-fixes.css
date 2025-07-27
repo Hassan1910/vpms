@@ -1,0 +1,6 @@
+/* Final Sidebar Text Visibility Fix */
+
+/* This rule targets the specific class that is hiding the text in the collapsed sidebar. */
+.open aside.left-panel .navbar .navbar-nav li a {
+    font-size: 14px !important; /* Ensure text is visible */
+}

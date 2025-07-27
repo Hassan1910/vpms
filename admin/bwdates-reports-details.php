@@ -2,153 +2,331 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['vpmsaid']==0)) {
-  header('location:logout.php');
-  } else{
 
+if (strlen($_SESSION['vpmsaid']) == 0) {
+    header('location:logout.php');
+    exit();
+}
 
+// Handle form submission from bwdates-report-ds.php
+$fromdate = isset($_POST['fromdate']) ? $_POST['fromdate'] : (isset($_GET['fromdate']) ? $_GET['fromdate'] : '');
+$todate = isset($_POST['todate']) ? $_POST['todate'] : (isset($_GET['todate']) ? $_GET['todate'] : '');
 
-  ?>
+// If no dates provided, redirect back
+if (!$fromdate || !$todate) {
+    header('location:bwdates-report-ds.php');
+    exit();
+}
+
+// Fetch comprehensive report data
+$reportData = [];
+$totalRevenue = 0;
+$totalBookings = 0;
+$totalPaidBookings = 0;
+$totalPendingBookings = 0;
+
+$query = "SELECT 
+    b.id as booking_id,
+    b.parking_number,
+    b.start_time,
+    b.end_time,
+    b.status,
+    b.user_id,
+    ps.price_per_hour,
+    v.VehicleCompanyname,
+    v.RegistrationNumber,
+    v.VehicleCategory,
+    v.OwnerName,
+    v.OwnerContactNumber as MobileNumber,
+    u.FirstName,
+    u.LastName,
+    u.Email,
+    p.amount as payment_amount,
+    p.status as payment_status,
+    p.created_at as payment_date,
+    'M-Pesa' as payment_method,
+    TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) as duration_hours,
+    (TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) * ps.price_per_hour) as calculated_amount
+FROM bookings b
+LEFT JOIN parking_space ps ON b.parking_number = ps.parking_number
+LEFT JOIN tblvehicle v ON b.vehicle_id = v.id
+LEFT JOIN tblregusers u ON b.user_id = u.id
+LEFT JOIN payment p ON b.id = p.booking_id
+WHERE DATE(b.start_time) BETWEEN '$fromdate' AND '$todate'
+ORDER BY b.start_time DESC";
+
+$result = mysqli_query($con, $query);
+
+if ($result) {
+    while ($row = mysqli_fetch_array($result)) {
+        $reportData[] = $row;
+        $totalBookings++;
+        if ($row['payment_status'] == 'completed' || $row['payment_status'] == 'paid') {
+            $totalPaidBookings++;
+            $totalRevenue += $row['payment_amount'] ? $row['payment_amount'] : $row['calculated_amount'];
+        } else {
+            $totalPendingBookings++;
+        }
+    }
+}
+
+$averageBookingValue = $totalPaidBookings > 0 ? $totalRevenue / $totalPaidBookings : 0;
+?>
+
 <!doctype html>
-
-<html class="no-js" lang="">
+<html lang="">
 <head>
-   
-    <title>VPMS - Reports</title>
-   
-
+    <title>Booking Reports - Details</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <link rel="apple-touch-icon" href="https://i.imgur.com/QRAUqs9.png">
     <link rel="shortcut icon" href="https://i.imgur.com/QRAUqs9.png">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.0/normalize.min.css">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pixeden-stroke-7-icon@1.2.3/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.2.0/css/flag-icon.min.css">
-    <link rel="stylesheet" href="assets/css/cs-skin-elastic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
-
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
-
+    <link rel="stylesheet" href="assets/css/sidebar-style.css">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.bootstrap4.min.css">
+    
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stats-card h5 { margin-bottom: 10px; font-weight: 600; }
+        .stats-card .stat-value { font-size: 1.8rem; font-weight: bold; }
+        .export-buttons { margin: 20px 0; }
+        .report-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .stats-card { background: #f8f9fa !important; color: #333 !important; }
+        }
+    </style>
 </head>
+
 <body>
-    <!-- Left Panel -->
+<?php include_once('includes/sidebar.php'); ?>
+<?php include_once('includes/header.php'); ?>
 
-  <?php include_once('includes/sidebar.php');?>
-
-    <!-- Left Panel -->
-
-    <!-- Right Panel -->
-
-     <?php include_once('includes/header.php');?>
-
-        <div class="breadcrumbs">
-            <div class="breadcrumbs-inner">
-                <div class="row m-0">
-                    <div class="col-sm-4">
-                        <div class="page-header float-left">
-                            <div class="page-title">
-                                <h1>Dashboard</h1>
-                            </div>
-                        </div>
+<div class="breadcrumbs no-print">
+    <div class="breadcrumbs-inner">
+        <div class="row m-0">
+            <div class="col-sm-4">
+                <div class="page-header float-left">
+                    <div class="page-title">
+                        <h1>Report Details</h1>
                     </div>
-                    <div class="col-sm-8">
-                        <div class="page-header float-right">
-                            <div class="page-title">
-                                <ol class="breadcrumb text-right">
-                                    <li><a href="dashboard.php">Dashboard</a></li>
-                                    <li><a href="bwdates-report-ds.php">Between Date Reports</a></li>
-                                    <li class="active">Between Date Reports</li>
-                                </ol>
-                            </div>
-                        </div>
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <div class="page-header float-right">
+                    <div class="page-title">
+                        <ol class="breadcrumb text-right">
+                            <li><a href="dashboard.php">Dashboard</a></li>
+                            <li><a href="bwdates-report-ds.php">Reports</a></li>
+                            <li class="active">Report Details</li>
+                        </ol>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="content">
-            <div class="animated fadeIn">
+<div class="content">
+    <div class="animated fadeIn">
+        <div class="container-fluid">
+            
+            <!-- Back Button -->
+            <div class="mb-3 no-print">
+                <a href="bwdates-report-ds.php" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Reports
+                </a>
+            </div>
+
+            <!-- Report Header -->
+            <div class="report-header">
                 <div class="row">
-                   
-         
-
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <strong class="card-title">Between Date Reports</strong>
+                    <div class="col-md-8">
+                        <h2><i class="fas fa-file-alt"></i> Detailed Parking Report</h2>
+                        <p class="lead">Report Period: <?php echo date('F j, Y', strtotime($fromdate)); ?> - <?php echo date('F j, Y', strtotime($todate)); ?></p>
+                        <p><small>Generated on: <?php echo date('F j, Y \a\t g:i A'); ?></small></p>
+                    </div>
+                    <div class="col-md-4 text-right no-print">
+                        <div class="export-buttons">
+                            <button onclick="window.print()" class="btn btn-success">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                            <a href="export_pdf_report.php?fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>" 
+                               class="btn btn-danger">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            <a href="export_excel_report.php?fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>" 
+                               class="btn btn-info">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </a>
                         </div>
-                        <div class="card-body">
-                            <?php
-$fdate=$_POST['fromdate'];
-$tdate=$_POST['todate'];
-
-?>
-<h5 align="center" style="color:blue">Report from <?php echo $fdate?> to <?php echo $tdate?></h5>
-                             <table class="table">
-                <thead>
-                                        <tr>
-                                            <tr>
-                  <th>S.NO</th>
-            
-                 
-                    <th>Parking Number</th>
-                    <th>Owner Name</th>
-                    <th>Vehicle Reg Number</th>
-                   
-                          <th>Action</th>
-                </tr>
-                                        </tr>
-                                        </thead>
-               <?php
-$ret=mysqli_query($con,"select *from   tblvehicle where date(InTime) between '$fdate' and '$tdate'");
-$cnt=1;
-while ($row=mysqli_fetch_array($ret)) {
-
-?>
-              
-                <tr>
-                  <td><?php echo $cnt;?></td>
-            
-                 
-                  <td><?php  echo $row['ParkingNumber'];?></td>
-                  <td><?php  echo $row['OwnerName'];?></td>
-                  <td><?php  echo $row['RegistrationNumber'];?></td>
-                  
-                  <td><a href="view-incomingvehicle-detail.php?viewid=<?php echo $row['ID'];?>">View</a></td>
-                </tr>
-                <?php 
-$cnt=$cnt+1;
-}?>
-              </table>
-
                     </div>
                 </div>
             </div>
 
+            <!-- Statistics Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-car"></i> Total Bookings</h5>
+                        <div class="stat-value"><?php echo $totalBookings; ?></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-money-bill-wave"></i> Total Revenue</h5>
+                        <div class="stat-value">KES <?php echo number_format($totalRevenue, 2); ?></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-check-circle"></i> Paid Bookings</h5>
+                        <div class="stat-value"><?php echo $totalPaidBookings; ?></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-clock"></i> Pending</h5>
+                        <div class="stat-value"><?php echo $totalPendingBookings; ?></div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Detailed Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-table"></i> Detailed Booking Records</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="reportTable" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Booking ID</th>
+                                    <th>Date & Time</th>
+                                    <th>Parking Space</th>
+                                    <th>Vehicle Details</th>
+                                    <th>Owner Details</th>
+                                    <th>Duration</th>
+                                    <th>Amount</th>
+                                    <th>Payment Status</th>
+                                    <th>Payment Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $cnt = 1;
+                                foreach ($reportData as $row): 
+                                ?>
+                                <tr>
+                                    <td><?php echo $cnt++; ?></td>
+                                    <td><?php echo htmlspecialchars($row['booking_id']); ?></td>
+                                    <td>
+                                        <strong>Start:</strong> <?php echo date('M j, Y g:i A', strtotime($row['start_time'])); ?><br>
+                                        <strong>End:</strong> <?php echo date('M j, Y g:i A', strtotime($row['end_time'])); ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-primary">Space <?php echo htmlspecialchars($row['parking_number']); ?></span><br>
+                                        <small>KES <?php echo number_format($row['price_per_hour'], 2); ?>/hr</small>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($row['VehicleCompanyname']); ?></strong><br>
+                                        <span class="text-muted"><?php echo htmlspecialchars($row['RegistrationNumber']); ?></span><br>
+                                        <small class="badge badge-secondary"><?php echo htmlspecialchars($row['VehicleCategory']); ?></small>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($row['OwnerName']); ?></strong><br>
+                                        <small class="text-muted"><?php echo htmlspecialchars($row['MobileNumber']); ?></small><br>
+                                        <small class="text-muted"><?php echo htmlspecialchars($row['FirstName'] . ' ' . $row['LastName']); ?></small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info"><?php echo $row['duration_hours']; ?> hrs</span>
+                                    </td>
+                                    <td>
+                                        <strong>KES <?php echo number_format($row['payment_amount'] ? $row['payment_amount'] : $row['calculated_amount'], 2); ?></strong>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        $status = $row['payment_status'];
+                                        $badgeClass = 'secondary';
+                                        if ($status == 'completed' || $status == 'paid') {
+                                            $badgeClass = 'success';
+                                        } elseif ($status == 'pending') {
+                                            $badgeClass = 'warning';
+                                        } elseif ($status == 'failed') {
+                                            $badgeClass = 'danger';
+                                        }
+                                        ?>
+                                        <span class="badge badge-<?php echo $badgeClass; ?>">
+                                            <?php echo ucfirst($status); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php echo $row['payment_method'] ? htmlspecialchars($row['payment_method']) : 'N/A'; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
         </div>
-    </div><!-- .animated -->
-</div><!-- .content -->
+    </div>
+</div>
 
-<div class="clearfix"></div>
-
-<?php include_once('includes/footer.php');?>
-
-</div><!-- /#right-panel -->
-
-<!-- Right Panel -->
+<?php include_once('includes/footer.php'); ?>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@2.2.4/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.4/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-match-height@0.7.2/dist/jquery.matchHeight.min.js"></script>
-<script src="assets/js/main.js"></script>
 
+<!-- DataTables Scripts -->
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.0/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.0/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.0/js/buttons.print.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#reportTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        pageLength: 25,
+        responsive: true,
+        order: [[1, 'desc']]
+    });
+});
+</script>
 
 </body>
 </html>
-<?php }  ?>

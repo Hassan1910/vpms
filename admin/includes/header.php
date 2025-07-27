@@ -2,9 +2,10 @@
 <header id="header" class="header">
             <div class="top-left">
                 <div class="navbar-header">
-                    <a class="navbar-brand" href="dashboard.php"><img src="images/logo1.png" alt="Logo"></a>
-                    <a class="navbar-brand hidden" href="./"><img src="images/logo3.png" alt="Logo"></a>
-                    <a id="menuToggle" class="menutoggle"><i class="fa fa-bars"></i></a>
+                    <a class="navbar-brand" href="dashboard.php">
+                        <img src="../assets/img/images.png" alt="VPMS Logo" style="height: 40px; margin-right: 10px;">
+                        <strong style="color: blue; vertical-align: middle;">VPMS</strong>
+                    </a>
                 </div>
             </div>
             <div class="top-right">
@@ -21,14 +22,15 @@
                     <div class="user-area dropdown float-right">
                         <a href="#" class="dropdown-toggle active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <img class="user-avatar rounded-circle" src="images/images.png" alt="User Avatar">
+                            <span class="admin-name ml-2"><?php echo isset($_SESSION['admin_name']) ? $_SESSION['admin_name'] : 'Admin'; ?></span>
                         </a>
 
                         <div class="user-menu dropdown-menu">
-                            <a class="nav-link" href="admin-profile.php"><i class="fa fa- user"></i>My Profile</a>
+                            <a class="nav-link" href="admin-profile.php"><i class="fa fa-user"></i>My Profile</a>
 
-                            <a class="nav-link" href="change-password.php"><i class="fa fa -cog"></i>Change Password</a>
+                            <a class="nav-link" href="change-password.php"><i class="fa fa-cog"></i>Change Password</a>
 
-                            <a class="nav-link" href="index.php"><i class="fa fa-power -off"></i>Logout</a>
+                            <a class="nav-link" href="logout.php"><i class="fa fa-power-off"></i>Logout</a>
                         </div>
                     </div>
 

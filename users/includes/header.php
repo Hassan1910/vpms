@@ -1,8 +1,11 @@
 <div id="right-panel" class="right-panel">
 <header id="header" class="header">
             <div class="top-left">
-                <div class="navbar-header" style="padding-top: 20px;color: blue;">
-                    <strong >VPMS Users</strong>
+                <div class="navbar-header" style="padding-top: 10px;">
+                    <a class="navbar-brand" href="dashboard.php">
+                        <img src="../assets/img/images.png" alt="VPMS Logo" style="height: 40px; margin-right: 10px;">
+                        <strong style="color: blue; vertical-align: middle;">VPMS</strong>
+                    </a>
                 </div>
             </div>
             <div class="top-right">
@@ -22,11 +25,11 @@
                         </a>
 
                         <div class="user-menu dropdown-menu">
-                            <a class="nav-link" href="profile.php"><i class="fa fa- user"></i>My Profile</a>
+                            <a class="nav-link" href="profile.php"><i class="fa fa-user"></i>My Profile</a>
 
-                            <a class="nav-link" href="change-password.php"><i class="fa fa -cog"></i>Change Password</a>
+                            <a class="nav-link" href="change-password.php"><i class="fa fa-cog"></i>Change Password</a>
 
-                            <a class="nav-link" href="logout.php"><i class="fa fa-power -off"></i>Logout</a>
+                            <a class="nav-link" href="logout.php"><i class="fa fa-power-off"></i>Logout</a>
                         </div>
                     </div>
 

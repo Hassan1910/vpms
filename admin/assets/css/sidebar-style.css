@@ -1,0 +1,859 @@
+/* Modern Sidebar Styling - Matching Dashboard Theme */
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+    --info-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+    --shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --border-radius: 20px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Sidebar */
+aside.left-panel {
+    background: linear-gradient(180deg, #40e0d0 0%, #2dd4bf 100%) !important;
+    height: 100vh;
+    padding: 0;
+    vertical-align: top;
+    width: 280px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    top: 55px;
+    z-index: 999;
+    border-right: 1px solid rgba(64, 224, 208, 0.3);
+    transition: var(--transition);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Force sidebar background consistency */
+aside.left-panel,
+aside.left-panel::before,
+aside.left-panel::after {
+    background: linear-gradient(180deg, #40e0d0 0%, #2dd4bf 100%) !important;
+}
+
+/* Override any conflicting background styles */
+aside.left-panel .navbar,
+aside.left-panel .main-menu,
+aside.left-panel .navbar-nav {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Admin Header */
+.admin-header {
+    background: linear-gradient(135deg, #40e0d0 0%, #2dd4bf 100%);
+    padding: 30px 25px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: -1;
+}
+
+.admin-header h2 {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+}
+
+/* Hamburger menu styles removed */
+
+aside.left-panel:hover {
+    box-shadow: 0 0 40px rgba(64, 224, 208, 0.25);
+}
+
+/* Enhanced Navigation */
+.navbar {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+    padding: 15px 0;
+    margin: 0;
+}
+
+.navbar .main-menu {
+    width: 100%;
+    padding: 0;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Additional background overrides for navbar elements */
+.navbar,
+.navbar *,
+.navbar .navbar-nav,
+.navbar .navbar-nav li,
+.navbar .main-menu {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Enhanced Menu Items */
+.navbar .navbar-nav {
+    width: 100%;
+    padding: 0;
+}
+
+.navbar .navbar-nav li {
+    width: 100%;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.navbar .navbar-nav li > a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    margin: 0 15px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+}
+
+.navbar .navbar-nav li > a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+.navbar .navbar-nav li > a .menu-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    transition: var(--transition);
+    float: none;
+}
+
+.navbar .navbar-nav li > a:hover .menu-icon {
+    transform: scale(1.1);
+    color: #ffffff;
+}
+
+/* Active State */
+.navbar .navbar-nav li.active > a {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transform: translateX(0);
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+}
+
+.navbar .navbar-nav li.active > a .menu-icon {
+    color: white !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Hover Effects */
+.navbar .navbar-nav li > a::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.6);
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.navbar .navbar-nav li > a:hover::after {
+    width: 20px;
+}
+
+.navbar .navbar-nav li.active > a::after {
+    width: 20px;
+    background: white;
+}
+
+/* Menu Icons with Specific Colors */
+.navbar .navbar-nav li:nth-child(1) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(2) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(3) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(4) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(5) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(6) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(7) > a .menu-icon {
+    color: #ffffff;
+}
+
+.navbar .navbar-nav li:nth-child(8) > a .menu-icon {
+    color: #ffffff;
+}
+
+/* Active state preserves white color */
+.navbar .navbar-nav li.active > a .menu-icon {
+    color: white !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    aside.left-panel {
+        width: 260px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    aside.left-panel.active {
+        transform: translateX(0);
+    }
+    
+    .navbar .navbar-nav li > a {
+        padding: 12px 20px;
+        margin: 0 10px;
+    }
+    
+    .admin-header {
+        padding: 20px 15px;
+    }
+    
+    .admin-header h2 {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    aside.left-panel {
+        width: 100%;
+    }
+    
+    .navbar .navbar-nav li > a {
+        padding: 10px 15px;
+        margin: 0 5px;
+    }
+    
+    .admin-header {
+        padding: 15px 10px;
+    }
+    
+    .admin-header h2 {
+        font-size: 24px;
+    }
+}
+
+/* Additional Dashboard Integration Styles */
+
+/* Ensure sidebar works well with dashboard layout */
+.right-panel {
+    margin-left: 280px;
+    transition: var(--transition);
+    min-height: 100vh;
+}
+
+/* Enhanced header integration */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.header .navbar-brand img {
+    transition: var(--transition);
+}
+
+.header .navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Menu toggle button enhancement */
+.menutoggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    transition: var(--transition);
+}
+
+.menutoggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+/* User dropdown enhancement */
+.user-area .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 5px;
+    transition: var(--transition);
+}
+
+.user-area .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.user-area .user-avatar {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: var(--transition);
+}
+
+.user-area .dropdown-toggle:hover .user-avatar {
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Dropdown menu styling */
+.user-menu {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 10px 0;
+    margin-top: 10px;
+    min-width: 200px;
+}
+
+.user-menu .nav-link {
+    padding: 12px 20px;
+    color: #64748b;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-menu .nav-link:hover {
+    background: rgba(102, 126, 234, 0.08);
+    color: #667eea;
+    transform: translateX(5px);
+}
+
+.user-menu .nav-link i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Sidebar brand/logo area if needed */
+.sidebar-brand {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    margin-bottom: 20px;
+}
+
+.sidebar-brand img {
+    max-width: 120px;
+    height: auto;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 992px) {
+    .right-panel {
+        margin-left: 0;
+    }
+    
+    aside.left-panel {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .open aside.left-panel {
+        transform: translateX(0);
+    }
+    
+    .navbar .navbar-nav li > a {
+        padding: 15px 20px;
+    }
+}
+
+/* Loading animation for sidebar */
+.sidebar-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(102, 126, 234, 0.3);
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Sidebar footer if needed */
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+    background: rgba(248, 249, 250, 0.8);
+}
+
+.sidebar-footer p {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Ensure content doesn't overlap with sidebar */
+.content-wrapper {
+    min-height: calc(100vh - 60px);
+    padding: 20px;
+}
+
+/* Page transition effects */
+.page-content {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced scrollbar for sidebar */
+aside.left-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+aside.left-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+aside.left-panel::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 3px;
+}
+
+aside.left-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.5);
+}
+
+/* Text visibility fix */
+.navbar .navbar-nav li a {
+    font-size: 14px !important;
+    visibility: visible !important;
+    display: flex !important;
+    color: #64748b !important;
+}
+
+.navbar .navbar-nav li.active a {
+    color: white !important;
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+.navbar .navbar-nav li a:hover {
+    color: #667eea !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.navbar .navbar-nav li.active a:hover {
+    color: white !important;
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+/* Force text visibility on active admin sidebar items - Override any conflicting styles */
+.navbar .navbar-nav li.active > a,
+.navbar .navbar-nav li.active > a:hover,
+.navbar .navbar-nav li.active > a:focus,
+.navbar .navbar-nav li.active > a:active,
+.navbar .navbar-nav li.active > a:visited {
+    color: white !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    border-radius: 12px !important;
+}
+
+/* Force icon visibility on active admin sidebar items */
+.navbar .navbar-nav li.active > a .menu-icon,
+.navbar .navbar-nav li.active > a:hover .menu-icon,
+.navbar .navbar-nav li.active > a:focus .menu-icon {
+    color: white !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure all text content is visible */
+.navbar .navbar-nav li.active > a span,
+.navbar .navbar-nav li.active > a div,
+.navbar .navbar-nav li.active > a text {
+    color: white !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any Bootstrap or framework styles that might hide text */
+.navbar .navbar-nav li.active > a {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    font-family: inherit !important;
+    text-transform: none !important;
+}
+
+/* Ensure proper contrast and readability */
+.navbar .navbar-nav li.active > a {
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Additional safeguards for text display */
+.navbar .navbar-nav li.active > a {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+}
+
+/* Prevent any masking or clipping */
+.navbar .navbar-nav li.active > a {
+    clip: unset !important;
+    clip-path: unset !important;
+    mask: unset !important;
+}
+
+/* Final safety net for admin text visibility */
+.navbar .navbar-nav li.active > a {
+    color: white !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 12px !important;
+}
+
+/* Ensure the text content specifically is visible */
+.navbar .navbar-nav li.active > a {
+    -webkit-text-fill-color: white !important;
+    -webkit-text-stroke: 0 !important;
+}
+
+/* Animation for menu items */
+.navbar .navbar-nav li {
+    animation: slideInLeft 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+.navbar .navbar-nav li:nth-child(1) { animation-delay: 0.1s; }
+.navbar .navbar-nav li:nth-child(2) { animation-delay: 0.2s; }
+.navbar .navbar-nav li:nth-child(3) { animation-delay: 0.3s; }
+.navbar .navbar-nav li:nth-child(4) { animation-delay: 0.4s; }
+.navbar .navbar-nav li:nth-child(5) { animation-delay: 0.5s; }
+.navbar .navbar-nav li:nth-child(6) { animation-delay: 0.6s; }
+.navbar .navbar-nav li:nth-child(7) { animation-delay: 0.7s; }
+.navbar .navbar-nav li:nth-child(8) { animation-delay: 0.8s; }
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Font Awesome Icon Compatibility Fix */
+/* This ensures icons work with both Font Awesome 4 and 6 */
+
+/* Support for both fa and fas classes */
+.navbar .navbar-nav li > a .menu-icon.fa,
+.navbar .navbar-nav li > a .menu-icon.fas {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    transition: var(--transition);
+    float: none;
+}
+
+/* Ensure Font Awesome icons display correctly */
+.navbar .navbar-nav li > a .menu-icon:before {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome", "Font Awesome 5 Free", "Font Awesome 5 Pro";
+    font-weight: 900;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Fallback for missing icons */
+.navbar .navbar-nav li > a .menu-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome" !important;
+    font-weight: 900 !important;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Additional icon fixes for common Font Awesome issues */
+.menu-icon {
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override any conflicting styles */
+.navbar .navbar-nav li > a .menu-icon.fa-laptop:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-tachometer-alt:before {
+    content: "\f108"; /* Dashboard icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-plus-circle:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-plus-circle:before {
+    content: "\f055"; /* Add icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-parking:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-parking:before {
+    content: "\f540"; /* Parking icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-chart-bar:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-chart-bar:before {
+    content: "\f080"; /* Chart icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-calendar-alt:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-calendar-alt:before {
+    content: "\f073"; /* Calendar icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-search:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-search:before {
+    content: "\f002"; /* Search icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-users:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-users:before {
+    content: "\f0c0"; /* Users icon */
+}
+
+.navbar .navbar-nav li > a .menu-icon.fa-credit-card:before,
+.navbar .navbar-nav li > a .menu-icon.fas.fa-credit-card:before {
+    content: "\f09d"; /* Credit card icon */
+}
+
+/* Additional fixes to prevent white backgrounds */
+.navbar .navbar-nav li > a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    margin: 0 15px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+}
+
+/* ===== COMPREHENSIVE SIDEBAR BACKGROUND FIX ===== */
+/* This section ensures the entire sidebar maintains the turquoise gradient without any white backgrounds */
+
+/* Main sidebar container - enforce gradient background */
+aside.left-panel {
+    background: linear-gradient(180deg, #40e0d0 0%, #2dd4bf 100%) !important;
+    background-color: #40e0d0 !important;
+}
+
+/* Remove any potential white backgrounds from child elements */
+aside.left-panel *,
+aside.left-panel *::before,
+aside.left-panel *::after {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Exception: Keep the active menu item background and hover effects */
+aside.left-panel .navbar .navbar-nav li.active > a {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background-color: #667eea !important;
+}
+
+aside.left-panel .navbar .navbar-nav li > a:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ensure admin header maintains its gradient */
+aside.left-panel .admin-header {
+    background: linear-gradient(135deg, #40e0d0 0%, #2dd4bf 100%) !important;
+    background-color: #40e0d0 !important;
+}
+
+/* Override any Bootstrap or framework styles that might add white backgrounds */
+.navbar-nav,
+.nav,
+.nav > li,
+.nav > li > a,
+.navbar-default,
+.navbar-default .navbar-nav,
+.navbar-default .navbar-nav > li,
+.navbar-default .navbar-nav > li > a,
+.navbar-static-top,
+.navbar-fixed-top,
+.navbar-fixed-bottom {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Additional safeguards for common CSS frameworks */
+.panel,
+.panel-default,
+.panel-body,
+.panel-heading,
+.well,
+.well-sm,
+.well-lg,
+.list-group,
+.list-group-item {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Ensure no white backgrounds on any sidebar content */
+aside.left-panel .navbar,
+aside.left-panel .navbar-nav,
+aside.left-panel .nav,
+aside.left-panel .main-menu,
+aside.left-panel ul,
+aside.left-panel li,
+aside.left-panel div,
+aside.left-panel span {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Final override to ensure sidebar consistency */
+aside.left-panel {
+    background: linear-gradient(180deg, #40e0d0 0%, #2dd4bf 100%) !important;
+    background-attachment: fixed !important;
+}
+
+/* Hamburger menu removal - Hide all hamburger elements */
+.menu-toggle,
+.menutoggle,
+#menuToggle,
+#sidebarToggle {
+    display: none !important;
+}
+
+/* Ensure sidebar is always visible */
+#left-panel {
+    display: block !important;
+    transform: translateX(0) !important;
+    left: 0 !important;
+}
+
+/* Remove any mobile responsive hiding of sidebar */
+@media (max-width: 1010px) {
+    #left-panel {
+        display: block !important;
+        transform: translateX(0) !important;
+        left: 0 !important;
+    }
+}
+
+@media (max-width: 760px) {
+    #left-panel {
+        display: block !important;
+        transform: translateX(0) !important;
+        left: 0 !important;
+    }
+}
+
+/* Ensure right panel adjusts properly without hamburger menu */
+#right-panel {
+    margin-left: 280px !important; /* Adjust based on your sidebar width */
+}

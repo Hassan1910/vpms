@@ -101,14 +101,14 @@
 </div>
 
 <div class="section">
-    <h2>Payment Details</h2>
+    <h2>Transaction Details</h2>
     <table>
         <tr>
             <td class="label">Amount Paid:</td>
             <td>Ksh <?= number_format($receipt['amount'], 2) ?></td>
         </tr>
         <tr>
-            <td class="label">Payment Status:</td>
+            <td class="label">Transaction Status:</td>
             <td><?= htmlspecialchars(ucfirst($receipt['payment_status'])) ?></td>
         </tr>
     </table>

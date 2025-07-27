@@ -1,53 +1,41 @@
- <aside id="left-panel" class="left-panel">
-        <nav class="navbar navbar-expand-sm navbar-default">
-            <div id="main-menu" class="main-menu collapse navbar-collapse">
-                <ul class="nav navbar-nav">
-                    <li class="active">
-                        <a href="dashboard.php"><i class="menu-icon fa fa-laptop"></i>Dashboard </a>
-                    </li>
-                   
-                    <li>
-                        <a href="add-parking-space.php"><i class="menu-icon fa fa-laptop"></i>Add Parking </a>
-                    </li>
-
-                     <li>
-                        <a href="manage-parking.php"><i class="menu-icon fa fa-laptop"></i>Manage Parking </a>
-                    </li>
-                    <li class="menu-item-has-children dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-table"></i>Vehicle Category</a>
-                        <ul class="sub-menu children dropdown-menu">
-                            <li><i class="fa fa-table"></i><a href="add-category.php">Add Category</a></li>
-                            <li><i class="fa fa-table"></i><a href="manage-category.php">Manage Category</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li>
-                        <a href="add-vehicle.php"> <i class="menu-icon ti-email"></i>Add Vehicle </a>
-                    </li>
-                    <li class="menu-item-has-children dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-th"></i>Manage Vehicle</a>
-                        <ul class="sub-menu children dropdown-menu">
-                            <li><i class="menu-icon fa fa-th"></i><a href="manage-incomingvehicle.php">Manage In  Vehicle</a></li>
-                            <li><i class="menu-icon fa fa-th"></i><a href="manage-outgoingvehicle.php">Manage Out Vehicle</a>
-                           
-                        </li>
-
-                        </ul>
-                    </li>
-                    <li class="menu-item-has-children dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-th"></i>Reports</a>
-                        <ul class="sub-menu children dropdown-menu">
-                            <li><i class="menu-icon fa fa-th"></i><a href="bwdates-report-ds.php">Between Dates Reports</a></li>
-                           
-                        </ul>
-                    </li>
-<li>
-                        <a href="search-vehicle.php"> <i class="menu-icon fa fa-search"></i>Search Vehicle </a>
-                    </li>
-                    <li>
-                        <a href="reg-users.php"> <i class="menu-icon ti-user"></i>Reg Users </a>
-                    </li>
-                </ul>
-            </div><!-- /.navbar-collapse -->
-        </nav>
-    </aside>
+<?php
+$currentPage = basename($_SERVER['PHP_SELF']);
+?>
+<aside id="left-panel" class="left-panel">
+    <!-- VPMS Header -->
+    <div class="vpms-header">
+        <!-- Hamburger menu removed -->
+    </div>
+    
+    <nav class="navbar navbar-expand-sm navbar-default">
+        <div id="main-menu" class="main-menu collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li class="<?php echo ($currentPage == 'dashboard.php') ? 'active' : ''; ?>">
+                    <a href="dashboard.php"><i class="menu-icon fa fa-tachometer-alt"></i>Dashboard</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'add-parking-space.php') ? 'active' : ''; ?>">
+                    <a href="add-parking-space.php"><i class="menu-icon fa fa-plus-circle"></i>Add Parking</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'manage-parking.php') ? 'active' : ''; ?>">
+                    <a href="manage-parking.php"><i class="menu-icon fa fa-car"></i>Manage Parking</a>
+                </li>
+               
+                <li class="<?php echo ($currentPage == 'bwdates-report-ds.php') ? 'active' : ''; ?>">
+                    <a href="bwdates-report-ds.php"><i class="menu-icon fa fa-chart-bar"></i>Reports</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'manage-booking.php') ? 'active' : ''; ?>">
+                    <a href="manage-booking.php"><i class="menu-icon fa fa-calendar"></i>Manage Bookings</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'search-vehicle.php') ? 'active' : ''; ?>">
+                    <a href="search-vehicle.php"><i class="menu-icon fa fa-search"></i>Search Vehicle</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'reg-users.php') ? 'active' : ''; ?>">
+                    <a href="reg-users.php"><i class="menu-icon fa fa-users"></i>Reg Users</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'payment.php') ? 'active' : ''; ?>">
+                    <a href="payment.php"><i class="menu-icon fa fa-credit-card"></i>Transactions</a>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </nav>
+</aside>

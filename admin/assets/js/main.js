@@ -49,7 +49,8 @@ jQuery(document).ready(function($) {
 
 	 
 	 
-	// Menu Trigger
+	// Menu Trigger - DISABLED (Hamburger menu removed)
+	/*
 	$('#menuToggle').on('click', function(event) {
 		var windowWidth = $(window).width();   		 
 		if (windowWidth<1010) { 
@@ -65,6 +66,7 @@ jQuery(document).ready(function($) {
 		} 
 			 
 	}); 
+	*/
 
 	 
 	$(".menu-item-has-children.dropdown").each(function() {
