@@ -86,11 +86,11 @@ if (strlen($_SESSION['vpmsaid']) == 0) {
                                 </tr>
                                 <tr>
                                     <th>Owner Name</th>
-                                    <td><?php echo isset($row['OwnerName']) ? htmlspecialchars($row['OwnerName']) : 'N/A'; ?></td>
+                                    <td><?php echo isset($row['OwnerName']) ? htmlspecialchars($row['OwnerName']) : ''; ?></td>
                                 </tr>
                                 <tr>
                                     <th>Owner Contact Number</th>
-                                    <td><?php echo isset($row['OwnerContactNumber']) ? htmlspecialchars($row['OwnerContactNumber']) : 'N/A'; ?></td>
+                                    <td><?php echo isset($row['OwnerContactNumber']) ? htmlspecialchars($row['OwnerContactNumber']) : ''; ?></td>
                                 </tr>
             
                                   
