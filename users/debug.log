@@ -1,44 +1,37 @@
-[18-Jul-2025 11:44:50 Africa/Nairobi] Database connection successful
-[18-Jul-2025 11:44:50 Africa/Nairobi] Session UID: 9
-[18-Jul-2025 11:44:50 Africa/Nairobi] Session data: Array
+[08-Aug-2025 14:46:48 Africa/Nairobi] Database connection successful
+[08-Aug-2025 14:46:48 Africa/Nairobi] Session UID: 9
+[08-Aug-2025 14:46:48 Africa/Nairobi] Session data: Array
 (
-    [csrf_token] => d014caf57443db4038fcbe9dfc64ff806be179067869a2d89196c6185ef5dc07
+    [csrf_token] => 55301b946dba60e4282043865b06dd50ea6a4c3e0f0d8ce0c5aa4e96b868736a
     [vpmsuid] => 9
-    [vpmsumn] => 734567765
+    [vpmsumn] => 757489214
 )
 
-[18-Jul-2025 11:44:50 Africa/Nairobi] Valid session found for user ID: 9
-[18-Jul-2025 11:56:38 Africa/Nairobi] Database connection successful
-[18-Jul-2025 11:56:38 Africa/Nairobi] Session UID: 9
-[18-Jul-2025 11:56:38 Africa/Nairobi] Session data: Array
+[08-Aug-2025 14:46:48 Africa/Nairobi] Valid session found for user ID: 9
+[08-Aug-2025 14:47:57 Africa/Nairobi] Database connection successful
+[08-Aug-2025 14:47:57 Africa/Nairobi] Session UID: 9
+[08-Aug-2025 14:47:57 Africa/Nairobi] Session data: Array
 (
-    [csrf_token] => d014caf57443db4038fcbe9dfc64ff806be179067869a2d89196c6185ef5dc07
+    [csrf_token] => 55301b946dba60e4282043865b06dd50ea6a4c3e0f0d8ce0c5aa4e96b868736a
     [vpmsuid] => 9
-    [vpmsumn] => 734567765
+    [vpmsumn] => 757489214
+)
+
+[08-Aug-2025 14:47:57 Africa/Nairobi] Valid session found for user ID: 9
+[08-Aug-2025 14:49:46 Africa/Nairobi] Database connection successful
+[08-Aug-2025 14:49:46 Africa/Nairobi] Session UID: 9
+[08-Aug-2025 14:49:46 Africa/Nairobi] Session data: Array
+(
+    [csrf_token] => 55301b946dba60e4282043865b06dd50ea6a4c3e0f0d8ce0c5aa4e96b868736a
+    [vpmsuid] => 9
+    [vpmsumn] => 757489214
     [booking_success] => 1
     [booking_message] => Your parking space has been successfully booked.
-    [booking_id] => 24
+    [booking_id] => 11
     [payment_success] => 1
-    [payment_message] => Payment successful! Your transaction reference is VPMS-94-1752828944
-    [payment_reference] => VPMS-94-1752828944
-    [last_payment_id] => 94
+    [payment_message] => Payment successful! Your transaction reference is VPMS-38-1754653766
+    [payment_reference] => VPMS-38-1754653766
+    [last_payment_id] => 38
 )
 
-[18-Jul-2025 11:56:38 Africa/Nairobi] Valid session found for user ID: 9
-[18-Jul-2025 11:59:12 Africa/Nairobi] Database connection successful
-[18-Jul-2025 11:59:12 Africa/Nairobi] Session UID: 9
-[18-Jul-2025 11:59:12 Africa/Nairobi] Session data: Array
-(
-    [csrf_token] => d014caf57443db4038fcbe9dfc64ff806be179067869a2d89196c6185ef5dc07
-    [vpmsuid] => 9
-    [vpmsumn] => 734567765
-    [booking_success] => 1
-    [booking_message] => Your parking space has been successfully booked.
-    [booking_id] => 24
-    [payment_success] => 1
-    [payment_message] => Payment successful! Your transaction reference is VPMS-94-1752828944
-    [payment_reference] => VPMS-94-1752828944
-    [last_payment_id] => 94
-)
-
-[18-Jul-2025 11:59:12 Africa/Nairobi] Valid session found for user ID: 9
+[08-Aug-2025 14:49:46 Africa/Nairobi] Valid session found for user ID: 9

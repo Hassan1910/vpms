@@ -8,40 +8,107 @@ if (strlen($_SESSION['vpmsaid']) == 0) {
     exit();
 }
 
+// Get filter parameters and sanitize them
+$fromdate = isset($_GET['fromdate']) ? trim($_GET['fromdate']) : '';
+$todate = isset($_GET['todate']) ? trim($_GET['todate']) : '';
+$status_filter = isset($_GET['status']) ? trim($_GET['status']) : '';
+$payment_status_filter = isset($_GET['payment_status']) ? trim($_GET['payment_status']) : '';
+$vehicle_category_filter = isset($_GET['vehicle_category']) ? trim($_GET['vehicle_category']) : '';
+
+// Validate date formats
+function validateDate($date, $format = 'Y-m-d') {
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+
+// Set default date range if not provided or invalid
+if (empty($fromdate) || empty($todate) || !validateDate($fromdate) || !validateDate($todate)) {
+    // Get date range from database
+    $date_range_query = mysqli_query($con, "SELECT MIN(DATE(start_time)) as min_date, MAX(DATE(start_time)) as max_date FROM bookings");
+    $date_range = mysqli_fetch_array($date_range_query);
+
+    if (empty($fromdate) || !validateDate($fromdate)) {
+        $fromdate = $date_range['min_date'] ? $date_range['min_date'] : date('Y-m-d', strtotime('-30 days'));
+    }
+    if (empty($todate) || !validateDate($todate)) {
+        $todate = $date_range['max_date'] ? $date_range['max_date'] : date('Y-m-d');
+    }
+}
+
+// Ensure fromdate is not after todate
+if (strtotime($fromdate) > strtotime($todate)) {
+    $temp = $fromdate;
+    $fromdate = $todate;
+    $todate = $temp;
+}
+
+// Validate filter values against allowed options
+$allowed_statuses = ['confirmed', 'cancelled', 'completed'];
+$allowed_payment_statuses = ['paid', 'completed', 'pending', 'failed'];
+
+if (!empty($status_filter) && !in_array($status_filter, $allowed_statuses)) {
+    $status_filter = '';
+}
+
+if (!empty($payment_status_filter) && !in_array($payment_status_filter, $allowed_payment_statuses)) {
+    $payment_status_filter = '';
+}
+
+// Validate vehicle category exists in database
+if (!empty($vehicle_category_filter)) {
+    $cat_check = mysqli_query($con, "SELECT COUNT(*) as count FROM tblvehicle WHERE VehicleCategory = '" . mysqli_real_escape_string($con, $vehicle_category_filter) . "'");
+    $cat_result = mysqli_fetch_array($cat_check);
+    if ($cat_result['count'] == 0) {
+        $vehicle_category_filter = '';
+    }
+}
+
 // Debug mode - add ?debug=1 to URL to see debug info
 if (isset($_GET['debug'])) {
     echo "<h3>Debug Information</h3>";
     echo "<p>GET parameters: " . print_r($_GET, true) . "</p>";
     echo "<p>Session ID: " . $_SESSION['vpmsaid'] . "</p>";
     echo "<p>Current file: " . __FILE__ . "</p>";
-    echo "<p>Export files exist: PDF=" . (file_exists('export_pdf_report.php') ? 'Yes' : 'No') . 
+    echo "<p>Date Range: $fromdate to $todate</p>";
+    echo "<p>Filters: Status=$status_filter, Payment=$payment_status_filter, Vehicle=$vehicle_category_filter</p>";
+    echo "<p>Export files exist: PDF=" . (file_exists('export_pdf_report.php') ? 'Yes' : 'No') .
          ", Excel=" . (file_exists('export_excel_report.php') ? 'Yes' : 'No') . "</p>";
     echo "<p>Vendor autoload exists: " . (file_exists('../vendor/autoload.php') ? 'Yes' : 'No') . "</p>";
     if (isset($_GET['export'])) {
         echo "<p style='color: red;'>EXPORT REQUEST DETECTED: " . $_GET['export'] . "</p>";
     }
     echo "<p>Test exports: ";
-    echo "<a href='?export=excel&debug=1' style='color: blue;'>Test Excel</a> | ";
-    echo "<a href='?export=pdf&debug=1' style='color: red;'>Test PDF</a>";
+    echo "<a href='?export=excel&debug=1&fromdate=$fromdate&todate=$todate' style='color: blue;'>Test Excel</a> | ";
+    echo "<a href='?export=pdf&debug=1&fromdate=$fromdate&todate=$todate' style='color: red;'>Test PDF</a>";
     echo "</p>";
     echo "<hr>";
 }
 
 // Handle export requests BEFORE any HTML output
 if (isset($_GET['export'])) {
+    // Clear any previous output buffers to prevent issues
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
     $exportType = $_GET['export'];
-    $fromdate = $_GET['fromdate'] ?? '';
-    $todate = $_GET['todate'] ?? '';
+    $export_fromdate = $_GET['fromdate'] ?? $fromdate;
+    $export_todate = $_GET['todate'] ?? $todate;
+    $export_status_filter = $_GET['status'] ?? '';
+    $export_payment_status_filter = $_GET['payment_status'] ?? '';
+    $export_vehicle_category_filter = $_GET['vehicle_category'] ?? '';
+
+    // Validate dates
+    if (empty($export_fromdate) || empty($export_todate)) {
+        $date_range_query = mysqli_query($con, "SELECT MIN(DATE(start_time)) as min_date, MAX(DATE(start_time)) as max_date FROM bookings");
+        $date_range = mysqli_fetch_array($date_range_query);
+
+        $export_fromdate = $export_fromdate ?: ($date_range['min_date'] ?: date('Y-m-d', strtotime('-30 days')));
+        $export_todate = $export_todate ?: ($date_range['max_date'] ?: date('Y-m-d'));
+    }
     
-    // Get the same data that the main report uses
-    $date_range_query = mysqli_query($con, "SELECT MIN(DATE(start_time)) as min_date, MAX(DATE(start_time)) as max_date FROM bookings");
-    $date_range = mysqli_fetch_array($date_range_query);
-    
-    $export_fromdate = $date_range['min_date'] ? $date_range['min_date'] : date('Y-m-d');
-    $export_todate = $date_range['max_date'] ? $date_range['max_date'] : date('Y-m-d');
-    
-    // Fetch the same data as the main report
-    $exportQuery = "SELECT 
+    // Build the export query with filters
+    $exportQuery = "SELECT
         b.id as booking_id,
         b.parking_number,
         b.start_time,
@@ -68,8 +135,20 @@ if (isset($_GET['export'])) {
     LEFT JOIN tblvehicle v ON b.vehicle_id = v.id
     LEFT JOIN tblregusers u ON b.user_id = u.id
     LEFT JOIN payment p ON b.id = p.booking_id
-    WHERE DATE(b.start_time) BETWEEN '$export_fromdate' AND '$export_todate'
-    ORDER BY b.start_time DESC";
+    WHERE DATE(b.start_time) BETWEEN '$export_fromdate' AND '$export_todate'";
+
+    // Add additional filters
+    if (!empty($export_status_filter)) {
+        $exportQuery .= " AND b.status = '" . mysqli_real_escape_string($con, $export_status_filter) . "'";
+    }
+    if (!empty($export_payment_status_filter)) {
+        $exportQuery .= " AND p.status = '" . mysqli_real_escape_string($con, $export_payment_status_filter) . "'";
+    }
+    if (!empty($export_vehicle_category_filter)) {
+        $exportQuery .= " AND v.VehicleCategory = '" . mysqli_real_escape_string($con, $export_vehicle_category_filter) . "'";
+    }
+
+    $exportQuery .= " ORDER BY b.start_time DESC";
     
     $exportResult = mysqli_query($con, $exportQuery);
     $exportData = [];
@@ -96,15 +175,43 @@ if (isset($_GET['export'])) {
         // Create simple Excel/CSV export
         createExcelExport($exportData, $export_fromdate, $export_todate, $exportTotalRevenue, $exportTotalBookings);
         exit();
+    } else {
+        // Invalid export type, redirect back
+        header('Location: bwdates-report-ds.php');
+        exit();
     }
 }
 
 // Function to create PDF export
 function createPDFExport($data, $fromdate, $todate, $totalRevenue, $totalBookings) {
     try {
+        // Clear any output buffers first
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Limit data to prevent memory issues
+        if (count($data) > 1000) {
+            $data = array_slice($data, 0, 1000);
+        }
+        
         // Check if DomPDF is available
         if (file_exists('../vendor/autoload.php')) {
             require_once '../vendor/autoload.php';
+            
+            // Debug information for troubleshooting
+            if (isset($_GET['debug'])) {
+                echo "<h3>DomPDF Debug Information</h3>";
+                echo "<p>Checking for DomPDF class...</p>";
+                echo "<p>Autoload file exists: " . (file_exists('../vendor/autoload.php') ? 'Yes' : 'No') . "</p>";
+                if (class_exists('\Dompdf\Dompdf')) {
+                    echo "<p style='color:green'>DomPDF class found!</p>";
+                } else {
+                    echo "<p style='color:red'>DomPDF class NOT found!</p>";
+                }
+                echo "<p>Data count: " . count($data) . "</p>";
+                return;
+            }
             
             ob_start();
             ?>
@@ -176,21 +283,64 @@ function createPDFExport($data, $fromdate, $todate, $totalRevenue, $totalBooking
             <?php
             $html = ob_get_clean();
             
-            $options = new \Dompdf\Options();
-            $options->set('defaultFont', 'Arial');
-            $options->set('isRemoteEnabled', true);
-            
-            $dompdf = new \Dompdf\Dompdf($options);
-            $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'landscape');
-            $dompdf->render();
-            
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: attachment; filename="parking_report_' . date('Y-m-d') . '.pdf"');
-            echo $dompdf->output();
+            // Try to create DomPDF with error handling
+            try {
+                // Check if the Dompdf class exists
+                if (!class_exists('\Dompdf\Dompdf')) {
+                    throw new Exception("DomPDF class not found. Please check your installation.");
+                }
+                
+                // Create options object
+                $options = new \Dompdf\Options();
+                $options->set('defaultFont', 'Arial');
+                $options->set('isRemoteEnabled', false); // Disable remote for security
+                $options->set('isHtml5ParserEnabled', true);
+                $options->set('isPhpEnabled', false); // Disable PHP for security
+                
+                // Create DomPDF instance
+                $dompdf = new \Dompdf\Dompdf($options);
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'landscape');
+                $dompdf->render();
+                
+                // Clear any output buffers before sending PDF
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                
+                // Output the generated PDF
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment; filename="parking_report_' . date('Y-m-d') . '.pdf"');
+                header('Content-Length: ' . strlen($dompdf->output()));
+                echo $dompdf->output();
+                exit();
+            } catch (Exception $e) {
+                // Log the error
+                error_log("PDF Generation Error: " . $e->getMessage());
+                
+                // If in debug mode, show detailed error
+                if (isset($_GET['debug'])) {
+                    echo "<h3>PDF Generation Error</h3>";
+                    echo "<p style='color:red'>Error: " . $e->getMessage() . "</p>";
+                    echo "<p>Stack trace: <pre>" . $e->getTraceAsString() . "</pre></p>";
+                    exit();
+                }
+                
+                // Fall back to HTML download
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                header('Content-Type: text/html');
+                header('Content-Disposition: attachment; filename="parking_report_' . date('Y-m-d') . '.html"');
+                echo $html;
+                exit();
+            }
             
         } else {
             // Fallback to HTML download if DomPDF not available
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
             header('Content-Type: text/html');
             header('Content-Disposition: attachment; filename="parking_report_' . date('Y-m-d') . '.html"');
             
@@ -212,26 +362,48 @@ function createPDFExport($data, $fromdate, $todate, $totalRevenue, $totalBooking
                 echo "<td>KES " . number_format($row['payment_amount'] ? $row['payment_amount'] : $row['calculated_amount'], 2) . "</td>";
                 echo "<td>" . ucfirst($row['payment_status']) . "</td>";
                 echo "</tr>";
+                
+                // Prevent infinite loops by limiting output
+                if ($cnt > 1000) {
+                    echo "<tr><td colspan='7'>... (Output limited to 1000 records for performance)</td></tr>";
+                    break;
+                }
             }
             echo "</table>";
+            exit();
         }
     } catch (Exception $e) {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
         header('Content-Type: text/plain');
         header('Content-Disposition: attachment; filename="error_' . date('Y-m-d') . '.txt"');
         echo "Error generating PDF: " . $e->getMessage();
         echo "\nPlease contact system administrator.";
+        exit();
     }
 }
 
 // Function to create Excel/CSV export
 function createExcelExport($data, $fromdate, $todate, $totalRevenue, $totalBookings) {
     try {
+        // Clear any output buffers first
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Limit data to prevent memory issues
+        if (count($data) > 5000) {
+            $data = array_slice($data, 0, 5000);
+        }
+        
         $filename = "parking_report_" . date('Y-m-d') . ".csv";
         
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         
         $output = fopen('php://output', 'w');
         
@@ -283,23 +455,26 @@ function createExcelExport($data, $fromdate, $todate, $totalRevenue, $totalBooki
                 ucfirst($row['payment_status']),
                 $row['payment_method']
             ]);
+            
+            // Flush output periodically to prevent memory issues
+            if ($cnt % 100 == 0) {
+                flush();
+            }
         }
         
         fclose($output);
+        exit();
     } catch (Exception $e) {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
         header('Content-Type: text/plain');
         header('Content-Disposition: attachment; filename="error_' . date('Y-m-d') . '.txt"');
         echo "Error generating Excel export: " . $e->getMessage();
         echo "\nPlease contact system administrator.";
+        exit();
     }
 }
-
-// Get ALL data from first booking to last booking automatically
-$date_range_query = mysqli_query($con, "SELECT MIN(DATE(start_time)) as min_date, MAX(DATE(start_time)) as max_date FROM bookings");
-$date_range = mysqli_fetch_array($date_range_query);
-
-$fromdate = $date_range['min_date'] ? $date_range['min_date'] : date('Y-m-d');
-$todate = $date_range['max_date'] ? $date_range['max_date'] : date('Y-m-d');
 
 // Initialize variables
 $reportData = [];
@@ -309,37 +484,48 @@ $totalPaidBookings = 0;
 $totalPendingBookings = 0;
 $averageBookingValue = 0;
 
-// Always generate report for ALL bookings
-// Fetch comprehensive report data
-    $query = "SELECT 
-        b.id as booking_id,
-        b.parking_number,
-        b.start_time,
-        b.end_time,
-        b.status,
-        b.user_id,
-        COALESCE(ps.price_per_hour, 100) as price_per_hour,
-        COALESCE(v.VehicleCompanyname, 'N/A') as VehicleCompanyname,
-        COALESCE(v.RegistrationNumber, 'N/A') as RegistrationNumber,
-        COALESCE(v.VehicleCategory, 'N/A') as VehicleCategory,
-        COALESCE(v.OwnerName, '') as OwnerName,
-        COALESCE(v.OwnerContactNumber, '') as MobileNumber,
-        COALESCE(u.FirstName, 'N/A') as FirstName,
-        COALESCE(u.LastName, 'N/A') as LastName,
-        COALESCE(u.Email, 'N/A') as Email,
-        COALESCE(p.amount, 0) as payment_amount,
-        COALESCE(p.status, 'pending') as payment_status,
-        p.created_at as payment_date,
-        COALESCE('M-Pesa', 'N/A') as payment_method,
-        COALESCE(TIMESTAMPDIFF(HOUR, b.start_time, b.end_time), 1) as duration_hours,
-        COALESCE((TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) * ps.price_per_hour), 100) as calculated_amount
-    FROM bookings b
-    LEFT JOIN parking_space ps ON b.parking_number = ps.parking_number
-    LEFT JOIN tblvehicle v ON b.vehicle_id = v.id
-    LEFT JOIN tblregusers u ON b.user_id = u.id
-    LEFT JOIN payment p ON b.id = p.booking_id
-    WHERE DATE(b.start_time) BETWEEN '$fromdate' AND '$todate'
-    ORDER BY b.start_time DESC";
+// Build the main report query with filters
+$query = "SELECT
+    b.id as booking_id,
+    b.parking_number,
+    b.start_time,
+    b.end_time,
+    b.status,
+    b.user_id,
+    COALESCE(ps.price_per_hour, 100) as price_per_hour,
+    COALESCE(v.VehicleCompanyname, 'N/A') as VehicleCompanyname,
+    COALESCE(v.RegistrationNumber, 'N/A') as RegistrationNumber,
+    COALESCE(v.VehicleCategory, 'N/A') as VehicleCategory,
+    COALESCE(v.OwnerName, '') as OwnerName,
+    COALESCE(v.OwnerContactNumber, '') as MobileNumber,
+    COALESCE(u.FirstName, 'N/A') as FirstName,
+    COALESCE(u.LastName, 'N/A') as LastName,
+    COALESCE(u.Email, 'N/A') as Email,
+    COALESCE(p.amount, 0) as payment_amount,
+    COALESCE(p.status, 'pending') as payment_status,
+    p.created_at as payment_date,
+    COALESCE('M-Pesa', 'N/A') as payment_method,
+    COALESCE(TIMESTAMPDIFF(HOUR, b.start_time, b.end_time), 1) as duration_hours,
+    COALESCE((TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) * ps.price_per_hour), 100) as calculated_amount
+FROM bookings b
+LEFT JOIN parking_space ps ON b.parking_number = ps.parking_number
+LEFT JOIN tblvehicle v ON b.vehicle_id = v.id
+LEFT JOIN tblregusers u ON b.user_id = u.id
+LEFT JOIN payment p ON b.id = p.booking_id
+WHERE DATE(b.start_time) BETWEEN '$fromdate' AND '$todate'";
+
+// Add additional filters
+if (!empty($status_filter)) {
+    $query .= " AND b.status = '" . mysqli_real_escape_string($con, $status_filter) . "'";
+}
+if (!empty($payment_status_filter)) {
+    $query .= " AND p.status = '" . mysqli_real_escape_string($con, $payment_status_filter) . "'";
+}
+if (!empty($vehicle_category_filter)) {
+    $query .= " AND v.VehicleCategory = '" . mysqli_real_escape_string($con, $vehicle_category_filter) . "'";
+}
+
+$query .= " ORDER BY b.start_time DESC";
     
     $result = mysqli_query($con, $query);
 
@@ -561,27 +747,123 @@ if (file_exists('includes/report_analytics.php')) {
     <div class="animated fadeIn">
         <div class="container-fluid">
             
-            <!-- Comprehensive Report Info -->
+            <!-- Report Filters -->
+            <div class="card no-print">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-filter"></i> Report Filters & Options</h4>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="" id="filterForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="fromdate"><i class="fas fa-calendar-alt"></i> From Date</label>
+                                    <input type="date" class="form-control" id="fromdate" name="fromdate"
+                                           value="<?php echo $fromdate; ?>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="todate"><i class="fas fa-calendar-alt"></i> To Date</label>
+                                    <input type="date" class="form-control" id="todate" name="todate"
+                                           value="<?php echo $todate; ?>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="status"><i class="fas fa-info-circle"></i> Booking Status</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="">All Statuses</option>
+                                        <option value="confirmed" <?php echo $status_filter == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                                        <option value="cancelled" <?php echo $status_filter == 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                        <option value="completed" <?php echo $status_filter == 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="payment_status"><i class="fas fa-credit-card"></i> Payment Status</label>
+                                    <select class="form-control" id="payment_status" name="payment_status">
+                                        <option value="">All Payments</option>
+                                        <option value="paid" <?php echo $payment_status_filter == 'paid' ? 'selected' : ''; ?>>Paid</option>
+                                        <option value="completed" <?php echo $payment_status_filter == 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                        <option value="pending" <?php echo $payment_status_filter == 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                        <option value="failed" <?php echo $payment_status_filter == 'failed' ? 'selected' : ''; ?>>Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="vehicle_category"><i class="fas fa-car"></i> Vehicle Type</label>
+                                    <select class="form-control" id="vehicle_category" name="vehicle_category">
+                                        <option value="">All Vehicles</option>
+                                        <?php
+                                        // Get vehicle categories from database
+                                        $cat_query = mysqli_query($con, "SELECT DISTINCT VehicleCategory FROM tblvehicle WHERE VehicleCategory IS NOT NULL AND VehicleCategory != ''");
+                                        while ($cat_row = mysqli_fetch_array($cat_query)) {
+                                            $selected = $vehicle_category_filter == $cat_row['VehicleCategory'] ? 'selected' : '';
+                                            echo "<option value='" . htmlspecialchars($cat_row['VehicleCategory']) . "' $selected>" . htmlspecialchars($cat_row['VehicleCategory']) . "</option>";
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="btn-group" role="group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                                        <i class="fas fa-times"></i> Clear Filters
+                                    </button>
+                                    <button type="button" class="btn btn-info" onclick="setQuickFilter('today')">
+                                        <i class="fas fa-calendar-day"></i> Today
+                                    </button>
+                                    <button type="button" class="btn btn-info" onclick="setQuickFilter('week')">
+                                        <i class="fas fa-calendar-week"></i> This Week
+                                    </button>
+                                    <button type="button" class="btn btn-info" onclick="setQuickFilter('month')">
+                                        <i class="fas fa-calendar-alt"></i> This Month
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Report Summary -->
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h4><i class="fas fa-chart-line"></i> Complete Parking Management Analytics</h4>
+                    <h4><i class="fas fa-chart-line"></i> Parking Management Report</h4>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <h5><i class="fas fa-database"></i> All-Time Report</h5>
-                            <p class="mb-2">This comprehensive report shows ALL parking data from your first booking to the latest.</p>
+                            <h5><i class="fas fa-database"></i> Filtered Report Results</h5>
+                            <p class="mb-2">Report showing parking data based on your selected filters.</p>
                             <p class="text-muted">
-                                <strong>Data Range:</strong> <?php echo $fromdate ? date('F j, Y', strtotime($fromdate)) : 'No data'; ?> 
+                                <strong>Date Range:</strong> <?php echo $fromdate ? date('F j, Y', strtotime($fromdate)) : 'No data'; ?>
                                 to <?php echo $todate ? date('F j, Y', strtotime($todate)) : 'No data'; ?>
+                                <?php if (!empty($status_filter)): ?>
+                                    <br><strong>Booking Status:</strong> <?php echo ucfirst($status_filter); ?>
+                                <?php endif; ?>
+                                <?php if (!empty($payment_status_filter)): ?>
+                                    <br><strong>Payment Status:</strong> <?php echo ucfirst($payment_status_filter); ?>
+                                <?php endif; ?>
+                                <?php if (!empty($vehicle_category_filter)): ?>
+                                    <br><strong>Vehicle Category:</strong> <?php echo htmlspecialchars($vehicle_category_filter); ?>
+                                <?php endif; ?>
                             </p>
                         </div>
                         <div class="col-md-4 text-right">
                             <div class="mt-2">
-                                <span class="badge badge-info p-2">
-                                    <i class="fas fa-sync-alt"></i> Auto-Generated
+                                <span class="badge badge-success p-2">
+                                    <i class="fas fa-filter"></i> Filtered Results
                                 </span>
-                                <br><small class="text-muted">Last updated: <?php echo date('g:i A'); ?></small>
+                                <br><small class="text-muted">Generated: <?php echo date('g:i A'); ?></small>
                             </div>
                         </div>
                     </div>
@@ -609,6 +891,13 @@ if (file_exists('includes/report_analytics.php')) {
                             <button onclick="exportExcel()" class="btn btn-info">
                                 <i class="fas fa-file-excel"></i> Export Excel
                             </button>
+                            <div class="mt-2">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="debug-mode">
+                                    <label class="custom-control-label" for="debug-mode">Debug Mode</label>
+                                </div>
+                                <small class="text-muted">Enable for troubleshooting export issues</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -949,15 +1238,127 @@ $(document).ready(function() {
 
 // Alternative export functions
 function exportPDF() {
+    // Prevent multiple simultaneous exports
+    if (window.exportInProgress) {
+        alert('Export already in progress. Please wait...');
+        return;
+    }
+    
+    window.exportInProgress = true;
+    
     var url = 'bwdates-report-ds.php?export=pdf&fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>';
+    <?php if (!empty($status_filter)): ?>
+    url += '&status=<?php echo urlencode($status_filter); ?>';
+    <?php endif; ?>
+    <?php if (!empty($payment_status_filter)): ?>
+    url += '&payment_status=<?php echo urlencode($payment_status_filter); ?>';
+    <?php endif; ?>
+    <?php if (!empty($vehicle_category_filter)): ?>
+    url += '&vehicle_category=<?php echo urlencode($vehicle_category_filter); ?>';
+    <?php endif; ?>
+    
+    // Check if debug mode is enabled
+    var debugMode = false;
+    var debugBtn = document.getElementById('debug-mode');
+    if (debugBtn && debugBtn.checked) {
+        url += '&debug=1';
+        debugMode = true;
+    }
+    
     console.log('PDF Export URL:', url);
-    window.open(url, '_blank');
+    
+    try {
+        if (debugMode) {
+            // In debug mode, open in same window to see error messages
+            window.location.href = url;
+        } else {
+            // Normal mode, open in new tab
+            var exportWindow = window.open(url, '_blank');
+            if (!exportWindow) {
+                alert('Pop-up blocked. Please allow pop-ups for this site.');
+            }
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Export failed. Please try again.');
+    } finally {
+        // Reset export flag after a delay
+        setTimeout(function() {
+            window.exportInProgress = false;
+        }, 3000);
+    }
 }
 
 function exportExcel() {
+    // Prevent multiple simultaneous exports
+    if (window.exportInProgress) {
+        alert('Export already in progress. Please wait...');
+        return;
+    }
+    
+    window.exportInProgress = true;
+    
     var url = 'bwdates-report-ds.php?export=excel&fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>';
+    <?php if (!empty($status_filter)): ?>
+    url += '&status=<?php echo urlencode($status_filter); ?>';
+    <?php endif; ?>
+    <?php if (!empty($payment_status_filter)): ?>
+    url += '&payment_status=<?php echo urlencode($payment_status_filter); ?>';
+    <?php endif; ?>
+    <?php if (!empty($vehicle_category_filter)): ?>
+    url += '&vehicle_category=<?php echo urlencode($vehicle_category_filter); ?>';
+    <?php endif; ?>
+    
     console.log('Excel Export URL:', url);
-    window.open(url, '_blank');
+    
+    try {
+        var exportWindow = window.open(url, '_blank');
+        if (!exportWindow) {
+            alert('Pop-up blocked. Please allow pop-ups for this site.');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Export failed. Please try again.');
+    } finally {
+        // Reset export flag after a delay
+        setTimeout(function() {
+            window.exportInProgress = false;
+        }, 2000);
+    }
+}
+
+// Filter helper functions
+function clearFilters() {
+    document.getElementById('fromdate').value = '';
+    document.getElementById('todate').value = '';
+    document.getElementById('status').value = '';
+    document.getElementById('payment_status').value = '';
+    document.getElementById('vehicle_category').value = '';
+    document.getElementById('filterForm').submit();
+}
+
+function setQuickFilter(period) {
+    var today = new Date();
+    var fromDate, toDate;
+
+    switch(period) {
+        case 'today':
+            fromDate = toDate = today.toISOString().split('T')[0];
+            break;
+        case 'week':
+            var startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+            fromDate = startOfWeek.toISOString().split('T')[0];
+            toDate = new Date().toISOString().split('T')[0];
+            break;
+        case 'month':
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            toDate = new Date().toISOString().split('T')[0];
+            break;
+    }
+
+    document.getElementById('fromdate').value = fromDate;
+    document.getElementById('todate').value = toDate;
+    document.getElementById('filterForm').submit();
 }
 </script>
 

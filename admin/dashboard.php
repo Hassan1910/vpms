@@ -817,6 +817,10 @@ $current_month = date('F Y');
                             <i class="fas fa-credit-card"></i>
                             <span>Transactions</span>
                         </a>
+                        <a href="view-receipts.php" class="action-btn">
+                            <i class="fas fa-receipt"></i>
+                            <span>View Receipts</span>
+                        </a>
                         <a href="reg-users.php" class="action-btn">
                             <i class="fas fa-user-plus"></i>
                             <span>User Management</span>

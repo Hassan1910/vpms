@@ -26,14 +26,18 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <li class="<?php echo ($currentPage == 'manage-booking.php') ? 'active' : ''; ?>">
                     <a href="manage-booking.php"><i class="menu-icon fa fa-calendar"></i>Manage Bookings</a>
                 </li>
-                <li class="<?php echo ($currentPage == 'search-vehicle.php') ? 'active' : ''; ?>">
-                    <a href="search-vehicle.php"><i class="menu-icon fa fa-search"></i>Search Vehicle</a>
-                </li>
+               
                 <li class="<?php echo ($currentPage == 'reg-users.php') ? 'active' : ''; ?>">
                     <a href="reg-users.php"><i class="menu-icon fa fa-users"></i>Reg Users</a>
                 </li>
                 <li class="<?php echo ($currentPage == 'payment.php') ? 'active' : ''; ?>">
                     <a href="payment.php"><i class="menu-icon fa fa-credit-card"></i>Transactions</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'view-receipts.php') ? 'active' : ''; ?>">
+                    <a href="view-receipts.php"><i class="menu-icon fa fa-receipt"></i>View Receipts</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'manage-feedback.php') ? 'active' : ''; ?>">
+                    <a href="manage-feedback.php"><i class="menu-icon fa fa-comments"></i>Manage Feedback</a>
                 </li>
             </ul>
         </div><!-- /.navbar-collapse -->

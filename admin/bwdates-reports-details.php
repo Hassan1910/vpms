@@ -8,14 +8,35 @@ if (strlen($_SESSION['vpmsaid']) == 0) {
     exit();
 }
 
-// Handle form submission from bwdates-report-ds.php
+// Get filter parameters from both POST and GET
 $fromdate = isset($_POST['fromdate']) ? $_POST['fromdate'] : (isset($_GET['fromdate']) ? $_GET['fromdate'] : '');
 $todate = isset($_POST['todate']) ? $_POST['todate'] : (isset($_GET['todate']) ? $_GET['todate'] : '');
+$status_filter = isset($_POST['status']) ? $_POST['status'] : (isset($_GET['status']) ? $_GET['status'] : '');
+$payment_status_filter = isset($_POST['payment_status']) ? $_POST['payment_status'] : (isset($_GET['payment_status']) ? $_GET['payment_status'] : '');
+$vehicle_category_filter = isset($_POST['vehicle_category']) ? $_POST['vehicle_category'] : (isset($_GET['vehicle_category']) ? $_GET['vehicle_category'] : '');
 
-// If no dates provided, redirect back
-if (!$fromdate || !$todate) {
+// Validate date formats
+function validateDate($date, $format = 'Y-m-d') {
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+
+// If no dates provided or invalid, redirect back
+if (!$fromdate || !$todate || !validateDate($fromdate) || !validateDate($todate)) {
     header('location:bwdates-report-ds.php');
     exit();
+}
+
+// Validate filter values
+$allowed_statuses = ['confirmed', 'cancelled', 'completed'];
+$allowed_payment_statuses = ['paid', 'completed', 'pending', 'failed'];
+
+if (!empty($status_filter) && !in_array($status_filter, $allowed_statuses)) {
+    $status_filter = '';
+}
+
+if (!empty($payment_status_filter) && !in_array($payment_status_filter, $allowed_payment_statuses)) {
+    $payment_status_filter = '';
 }
 
 // Fetch comprehensive report data
@@ -25,35 +46,47 @@ $totalBookings = 0;
 $totalPaidBookings = 0;
 $totalPendingBookings = 0;
 
-$query = "SELECT 
+$query = "SELECT
     b.id as booking_id,
     b.parking_number,
     b.start_time,
     b.end_time,
     b.status,
     b.user_id,
-    ps.price_per_hour,
-    v.VehicleCompanyname,
-    v.RegistrationNumber,
-    v.VehicleCategory,
-    v.OwnerName,
-    v.OwnerContactNumber as MobileNumber,
-    u.FirstName,
-    u.LastName,
-    u.Email,
-    p.amount as payment_amount,
-    p.status as payment_status,
+    COALESCE(ps.price_per_hour, 100) as price_per_hour,
+    COALESCE(v.VehicleCompanyname, 'N/A') as VehicleCompanyname,
+    COALESCE(v.RegistrationNumber, 'N/A') as RegistrationNumber,
+    COALESCE(v.VehicleCategory, 'N/A') as VehicleCategory,
+    COALESCE(v.OwnerName, '') as OwnerName,
+    COALESCE(v.OwnerContactNumber, '') as MobileNumber,
+    COALESCE(u.FirstName, 'N/A') as FirstName,
+    COALESCE(u.LastName, 'N/A') as LastName,
+    COALESCE(u.Email, 'N/A') as Email,
+    COALESCE(p.amount, 0) as payment_amount,
+    COALESCE(p.status, 'pending') as payment_status,
     p.created_at as payment_date,
-    'M-Pesa' as payment_method,
-    TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) as duration_hours,
-    (TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) * ps.price_per_hour) as calculated_amount
+    COALESCE('M-Pesa', 'N/A') as payment_method,
+    COALESCE(TIMESTAMPDIFF(HOUR, b.start_time, b.end_time), 1) as duration_hours,
+    COALESCE((TIMESTAMPDIFF(HOUR, b.start_time, b.end_time) * ps.price_per_hour), 100) as calculated_amount
 FROM bookings b
 LEFT JOIN parking_space ps ON b.parking_number = ps.parking_number
 LEFT JOIN tblvehicle v ON b.vehicle_id = v.id
 LEFT JOIN tblregusers u ON b.user_id = u.id
 LEFT JOIN payment p ON b.id = p.booking_id
-WHERE DATE(b.start_time) BETWEEN '$fromdate' AND '$todate'
-ORDER BY b.start_time DESC";
+WHERE DATE(b.start_time) BETWEEN '$fromdate' AND '$todate'";
+
+// Add additional filters
+if (!empty($status_filter)) {
+    $query .= " AND b.status = '" . mysqli_real_escape_string($con, $status_filter) . "'";
+}
+if (!empty($payment_status_filter)) {
+    $query .= " AND p.status = '" . mysqli_real_escape_string($con, $payment_status_filter) . "'";
+}
+if (!empty($vehicle_category_filter)) {
+    $query .= " AND v.VehicleCategory = '" . mysqli_real_escape_string($con, $vehicle_category_filter) . "'";
+}
+
+$query .= " ORDER BY b.start_time DESC";
 
 $result = mysqli_query($con, $query);
 
@@ -163,19 +196,45 @@ $averageBookingValue = $totalPaidBookings > 0 ? $totalRevenue / $totalPaidBookin
                     <div class="col-md-8">
                         <h2><i class="fas fa-file-alt"></i> Detailed Parking Report</h2>
                         <p class="lead">Report Period: <?php echo date('F j, Y', strtotime($fromdate)); ?> - <?php echo date('F j, Y', strtotime($todate)); ?></p>
-                        <p><small>Generated on: <?php echo date('F j, Y \a\t g:i A'); ?></small></p>
+                        <?php if (!empty($status_filter) || !empty($payment_status_filter) || !empty($vehicle_category_filter)): ?>
+                        <p class="text-muted">
+                            <strong>Applied Filters:</strong>
+                            <?php if (!empty($status_filter)): ?>
+                                <span class="badge badge-primary">Status: <?php echo ucfirst($status_filter); ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($payment_status_filter)): ?>
+                                <span class="badge badge-success">Payment: <?php echo ucfirst($payment_status_filter); ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($vehicle_category_filter)): ?>
+                                <span class="badge badge-info">Vehicle: <?php echo htmlspecialchars($vehicle_category_filter); ?></span>
+                            <?php endif; ?>
+                        </p>
+                        <?php endif; ?>
+                        <p><small>Generated on: <?php echo date('F j, Y \a\t g:i A'); ?> | Total Records: <?php echo count($reportData); ?></small></p>
                     </div>
                     <div class="col-md-4 text-right no-print">
                         <div class="export-buttons">
                             <button onclick="window.print()" class="btn btn-success">
                                 <i class="fas fa-print"></i> Print
                             </button>
-                            <a href="export_pdf_report.php?fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>" 
-                               class="btn btn-danger">
+                            <?php
+                            $export_params = "fromdate=" . urlencode($fromdate) . "&todate=" . urlencode($todate);
+                            if (!empty($status_filter)) {
+                                $export_params .= "&status=" . urlencode($status_filter);
+                            }
+                            if (!empty($payment_status_filter)) {
+                                $export_params .= "&payment_status=" . urlencode($payment_status_filter);
+                            }
+                            if (!empty($vehicle_category_filter)) {
+                                $export_params .= "&vehicle_category=" . urlencode($vehicle_category_filter);
+                            }
+                            ?>
+                            <a href="bwdates-report-ds.php?export=pdf&<?php echo $export_params; ?>"
+                               class="btn btn-danger" target="_blank">
                                 <i class="fas fa-file-pdf"></i> PDF
                             </a>
-                            <a href="export_excel_report.php?fromdate=<?php echo $fromdate; ?>&todate=<?php echo $todate; ?>" 
-                               class="btn btn-info">
+                            <a href="bwdates-report-ds.php?export=excel&<?php echo $export_params; ?>"
+                               class="btn btn-info" target="_blank">
                                 <i class="fas fa-file-excel"></i> Excel
                             </a>
                         </div>

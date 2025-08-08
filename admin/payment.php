@@ -38,7 +38,6 @@ if (strlen($_SESSION['vpmsaid']) == 0) {
                 <th>Parking Number</th>
                 <th>Amount</th>
                 <th>Status</th>
-                <th>Receipt</th>
                 <th>Remarks</th>
                 <th>Date</th>
             </tr>
@@ -54,7 +53,6 @@ $query = "
         ps.parking_number,
         p.amount,
         p.status,
-        p.receipt_url,
         p.remarks,
         p.created_at
     FROM payment p
@@ -70,7 +68,6 @@ if ($stmt) {
     $result = $stmt->get_result();
 
     while ($row = $result->fetch_assoc()) {
-        $receiptUrl = isset($row['receipt_url']) ? trim($row['receipt_url']) : '';
 ?>
             <tr>
                 <td><?php echo $cnt++; ?></td>
@@ -80,13 +77,6 @@ if ($stmt) {
                 <td><?php echo htmlspecialchars($row['parking_number']); ?></td>
                 <td>KES <?php echo number_format($row['amount'], 2); ?></td>
                 <td><?php echo htmlspecialchars($row['status']); ?></td>
-                <td>
-                    <?php if (!empty($receiptUrl)): ?>
-                        <a href="<?php echo htmlspecialchars($receiptUrl); ?>" target="_blank">View</a>
-                    <?php else: ?>
-                        <span class="text-muted">N/A</span>
-                    <?php endif; ?>
-                </td>
                 <td><?php echo !empty($row['remarks']) ? htmlspecialchars($row['remarks']) : ''; ?></td>
                 <td><?php echo !empty($row['created_at']) ? htmlspecialchars($row['created_at']) : ''; ?></td>
             </tr>

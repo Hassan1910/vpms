@@ -18,6 +18,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <li class="<?php echo ($currentPage == 'history.php') ? 'active' : ''; ?>">
                     <a href="history.php"><i class="menu-icon fa fa-credit-card"></i>My Transactions</a>
                 </li>
+                <li class="<?php echo ($currentPage == 'feedback.php') ? 'active' : ''; ?>">
+                    <a href="feedback.php"><i class="menu-icon fa fa-comment-dots"></i>Submit Feedback</a>
+                </li>
+                <li class="<?php echo ($currentPage == 'my-feedback.php') ? 'active' : ''; ?>">
+                    <a href="my-feedback.php"><i class="menu-icon fa fa-comments"></i>My Feedback</a>
+                </li>
             </ul>
         </div><!-- /.navbar-collapse -->
     </nav>
